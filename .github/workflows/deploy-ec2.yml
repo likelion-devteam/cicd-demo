@@ -1,0 +1,48 @@
+name: Deploy to EC2
+
+env:
+  EC2_HOST: 54.180.115.6
+  EC2_USER: ec2-user
+  DEPLOY_PATH: /home/ec2-user
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: "just-a-placeholder-so-we-dont-get-errors"
+
+      - name: Deploy to EC2
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Copy build files to EC2
+          scp -o StrictHostKeyChecking=no -r dist/* ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:${{ env.DEPLOY_PATH }}
+
+          # (Optional) Restart service if needed
+          # ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "sudo systemctl restart your-service-name"
