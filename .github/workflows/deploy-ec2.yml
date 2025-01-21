@@ -37,9 +37,9 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          # mkdir -p ~/.ssh
-          # echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          # chmod 600 ~/.ssh/id_rsa
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
           # Copy build files to EC2
           scp -o StrictHostKeyChecking=no -r dist/* ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:${{ env.DEPLOY_PATH }}
