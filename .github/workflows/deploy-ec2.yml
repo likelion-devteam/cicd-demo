@@ -3,7 +3,7 @@ name: Deploy to EC2
 env:
   EC2_HOST: 54.180.115.6
   EC2_USER: ec2-user
-  DEPLOY_PATH: /home/ec2-user
+  DEPLOY_PATH: /home/ec2-user/app
 
 on:
   push:
@@ -37,8 +37,12 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          # Copy build files to EC2
-          scp -o StrictHostKeyChecking=no -r dist/* ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:${{ env.DEPLOY_PATH }}
+          # Copy build files
+          scp -r dist/* ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:${{ env.DEPLOY_PATH }}
 
-          # (Optional) Restart service if needed
-          # ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "sudo systemctl restart your-service-name"
+          # Restart app with PM2
+          ssh ${{ env.EC2_USER }}@${{ env.EC2_HOST }} '
+            cd ${{ env.DEPLOY_PATH }}
+            pm2 delete react-app 2>/dev/null || true
+            pm2 serve . 3000 --name "react-app" --spa
+          '
