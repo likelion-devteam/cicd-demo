@@ -38,10 +38,10 @@ jobs:
       - name: Deploy to EC2
         run: |
           # Copy build files
-          scp -r dist/* ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:${{ env.DEPLOY_PATH }}
+          scp -o StrictHostKeyChecking=no -r dist/* ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:${{ env.DEPLOY_PATH }}
 
           # Restart app with PM2
-          ssh ${{ env.EC2_USER }}@${{ env.EC2_HOST }} '
+          ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} '
             cd ${{ env.DEPLOY_PATH }}
             pm2 delete react-app 2>/dev/null || true
             pm2 serve . 3000 --name "react-app" --spa
